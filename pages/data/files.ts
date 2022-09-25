@@ -200,6 +200,13 @@ const someHTMLCodeExample = `
   </html>
 `
 
+const somePrettierExample = `
+{
+  "semi": true,
+  "singleQuote": true
+}
+`
+
 const files = {
   'script.js': {
     name: 'script.js',
@@ -215,6 +222,11 @@ const files = {
     name: 'index.html',
     language: 'html',
     value: someHTMLCodeExample,
+  },
+  '.prettierrc': {
+    name: '.prettier',
+    language: 'json',
+    value: somePrettierExample,
   },
 }
 

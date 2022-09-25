@@ -3,12 +3,13 @@ import Editor, { Monaco, useMonaco } from '@monaco-editor/react'
 import { useState, useRef, useEffect } from 'react'
 import type { editor } from 'monaco-editor'
 
-import files from './data/files'
+import sourcefiles from './data/files'
 
 const Home: NextPage = () => {
   const editorRef = useRef<editor.IStandaloneCodeEditor>(null)
   const monacoRef = useRef<Monaco>(null)
   const [fileName, setFileName] = useState('script.js')
+  const [files, setFiles] = useState(sourcefiles)
   const [lang, setLang] = useState('')
   const [langs, setLangs] = useState([])
 
@@ -48,28 +49,21 @@ const Home: NextPage = () => {
       </select>
     )
   }
-
+  const renderButtons = () => {
+    return Object.keys(files).map((key) => (
+      <button
+        key={key}
+        disabled={fileName === key}
+        onClick={() => setFileName(key)}
+      >
+        {key}
+      </button>
+    ))
+  }
   return (
     <div>
       <div>{renderLangsList()}</div>
-      <button
-        disabled={fileName === 'script.js'}
-        onClick={() => setFileName('script.js')}
-      >
-        script.js
-      </button>
-      <button
-        disabled={fileName === 'style.css'}
-        onClick={() => setFileName('style.css')}
-      >
-        style.css
-      </button>
-      <button
-        disabled={fileName === 'index.html'}
-        onClick={() => setFileName('index.html')}
-      >
-        index.html
-      </button>
+      {renderButtons()}
       <p>lang: {lang}</p>
       <Editor
         height="80vh"
