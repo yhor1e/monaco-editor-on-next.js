@@ -12,7 +12,8 @@ const Home: NextPage = () => {
   const [files, setFiles] = useState(sourcefiles)
   const [lang, setLang] = useState('')
   const [langs, setLangs] = useState([])
-
+  const filesRef = useRef({})
+  filesRef.current = files
   const file = files[fileName]
   useEffect(() => {
     editorRef.current?.focus()
@@ -26,6 +27,23 @@ const Home: NextPage = () => {
     setLangs(monaco.languages.getLanguages())
     editor.onDidChangeModel(({ newModelUrl }) => {
       setLang(editor.getModel()?.getLanguageId())
+    })
+    editor.onDidBlurEditorText((...args) => {
+      setFiles((files) => {
+        return {
+          ...files,
+          ...{
+            [`${editor.getModel()?.uri.path.replace('/', '')}`]: {
+              name: files[`${editor.getModel()?.uri.path.replace('/', '')}`]
+                .name,
+              language:
+                files[`${editor.getModel()?.uri.path.replace('/', '')}`]
+                  .language,
+              value: editor.getModel()?.getValue(),
+            },
+          },
+        }
+      })
     })
     editorRef.current = editor
     monacoRef.current = monaco

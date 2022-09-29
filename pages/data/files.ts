@@ -224,7 +224,7 @@ const files = {
     value: someHTMLCodeExample,
   },
   '.prettierrc': {
-    name: '.prettier',
+    name: '.prettierrc',
     language: 'json',
     value: somePrettierExample,
   },
