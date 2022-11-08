@@ -23,3 +23,6 @@ Open [http://localhost:3000](http://localhost:3000)
     - https://github.com/microsoft/monaco-editor/issues/539
 
 - Resizabe layout by DnD
+  - refs
+    - 
+    - https://github.com/bokuweb/re-resizable/blob/master/stories/multiple.stories.tsx

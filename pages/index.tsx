@@ -16,7 +16,7 @@ const Home: NextPage = () => {
         <Link href="/editor">Multi modle editor + change language sample</Link>
       </li>
       <li>
-        <Link href="/resiser">Resizer</Link>
+        <Link href="/resizable">Resizable layout by DnD</Link>
       </li>
     </ul>
   )
