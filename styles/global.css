@@ -4,13 +4,19 @@ html,body, body > div {
 body {
   margin: 0;
 }
+.diviver {
+  position: absolute;
+  height: 100%;
+}
+
 .diviver:before {
   position: absolute;
   cursor: col-resize;
   display: block;
   z-index: 1000;
   content: "";
-  width: 3px;
+  transform: translate(-50%, 0);
+  width: 10px;
   background-color: black;
   height: 100%;
 }
