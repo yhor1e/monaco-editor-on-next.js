@@ -207,15 +207,16 @@ const ResizablePage: NextPage = () => {
           left
         </div>
         <div
+          ref={refContainer2}
           style={{
             backgroundColor: 'skyblue',
           }}
         >
           <ResizableLayout
-            refContainer={refContainer}
+            refContainer={refContainer2}
             direction={'HORIZONTAL'}
             //direction={'VIRTICAL'}
-            initFraction={[20, 40, 40]}
+            initFraction={[40, 60]}
           >
             <div
               style={{
@@ -223,13 +224,6 @@ const ResizablePage: NextPage = () => {
               }}
             >
               center-left
-            </div>
-            <div
-              style={{
-                backgroundColor: 'green',
-              }}
-            >
-              center-center
             </div>
             <div
               style={{
