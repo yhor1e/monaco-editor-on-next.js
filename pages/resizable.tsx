@@ -23,42 +23,66 @@ const ResizableLayout = ({
   const [isDragging, setIsDragging] = useState<Boolean>(false)
   const refDrag = useRef<number | null>(null)
 
-  const setFractionFromInit = useCallback(() => {
-    if (!refContainer.current) return
-    const width = Number(
-      window.getComputedStyle(refContainer.current).width.replace('px', '')
-    )
-    const elmentsWidth = initFraction.map((w) => (width * w) / 100)
-    const modified = elmentsWidth.map((width, index) => {
-      return elmentsWidth.slice(0, index + 1).reduce((acc, value) => {
-        return acc + value
-      }, 0)
-    })
-    setFraction(modified)
-  }, [])
+  const setFractionFromInit = useCallback(
+    (fraction: number[]) => {
+      if (!refContainer.current) return
+
+      const widthOrHeight =
+        direction === 'HORIZONTAL'
+          ? Number(
+              window
+                .getComputedStyle(refContainer.current)
+                .width.replace('px', '')
+            )
+          : Number(
+              window
+                .getComputedStyle(refContainer.current)
+                .height.replace('px', '')
+            )
+      const elmentsWidthOrHeight = fraction.map(
+        (wh) => (widthOrHeight * wh) / 100
+      )
+      const modified = elmentsWidthOrHeight.map((wh, index) => {
+        return elmentsWidthOrHeight.slice(0, index + 1).reduce((acc, value) => {
+          return acc + value
+        }, 0)
+      })
+      setFraction(modified)
+    },
+    [direction, refContainer]
+  )
 
   useEffect(() => {
     if (refContainer.current === null) return
     const observer = new ResizeObserver(() => {
-      setFractionFromInit()
+      console.log('resize')
+      setFractionFromInit(initFraction)
     })
     observer.observe(refContainer.current)
     return () => {
       observer.disconnect()
     }
-  }, [refContainer, setFractionFromInit])
+  }, [initFraction, refContainer, setFractionFromInit])
 
   useEffect(() => {
     const onMoveHandler = (e: MouseEvent) => {
       if (!isDragging) return
-      if (e.clientX === 0) return
+      if (!refContainer.current) return
+      if (
+        (direction === 'HORIZONTAL' &&
+          refContainer.current?.clientLeft - e.clientX > 0) ||
+        (direction === 'VIRTICAL' &&
+          refContainer.current?.clientTop - e.clientY > 0)
+      )
+        return
 
       setFraction((prev) => {
         if (!refDrag.current) return prev
+        const clientXorY = direction === 'HORIZONTAL' ? e.clientX : e.clientY
         const modified = [0, ...prev]
         const pos = refDrag.current
-        if (modified[pos - 1] < e.clientX && modified[pos + 1] > e.clientX) {
-          modified[pos] = e.clientX
+        if (modified[pos - 1] < clientXorY && modified[pos + 1] > clientXorY) {
+          modified[pos] = clientXorY
         }
         modified.shift()
         return modified
@@ -73,11 +97,11 @@ const ResizableLayout = ({
       window.removeEventListener('mousemove', onMoveHandler)
       console.log(isDragging)
     }
-  }, [isDragging])
+  }, [direction, isDragging, refContainer])
 
   useEffect(() => {
-    setFractionFromInit()
-  }, [setFractionFromInit])
+    setFractionFromInit(initFraction)
+  }, [initFraction, setFractionFromInit])
 
   const onMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     console.log('onMouseDown')
@@ -94,15 +118,21 @@ const ResizableLayout = ({
   const renderDiviver = () => {
     const diviver = children.map((child, index) => {
       if (index == 0) return
+      const leftOrTopStyle =
+        direction === 'HORIZONTAL'
+          ? {
+              left: `${fraction[index - 1]}px`,
+            }
+          : {
+              top: `${fraction[index - 1]}px`,
+            }
       return (
         <div
           key={index}
           onMouseDown={onMouseDown}
           data-diviver-pos={index}
-          className="diviver"
-          style={{
-            left: `${fraction[index - 1]}px`,
-          }}
+          className={direction === 'HORIZONTAL' ? 'diviver-h' : 'diviver-v'}
+          style={leftOrTopStyle}
         ></div>
       )
     })
@@ -116,16 +146,26 @@ const ResizableLayout = ({
         index === 0
           ? `${fraction[0]}px`
           : `${fraction[index] - fraction[index - 1]}px`
+      const style =
+        direction === 'HORIZONTAL'
+          ? {
+              left: leftOrTop,
+              width: widthOrHeight,
+              height: '100%',
+            }
+          : {
+              top: leftOrTop,
+              width: '100%',
+              height: widthOrHeight,
+            }
       return cloneElement(child, {
         key: index,
         style: {
           ...child.props.style,
           ...{
             position: 'absolute',
-            height: '100%',
-            left: leftOrTop,
-            width: widthOrHeight,
           },
+          ...style,
         },
       })
     })
@@ -155,7 +195,8 @@ const ResizablePage: NextPage = () => {
     >
       <ResizableLayout
         refContainer={refContainer}
-        direction={'HORIZONTAL'}
+        //direction={'HORIZONTAL'}
+        direction={'VIRTICAL'}
         initFraction={[20, 40, 40]}
       >
         <div
@@ -170,7 +211,34 @@ const ResizablePage: NextPage = () => {
             backgroundColor: 'skyblue',
           }}
         >
-          center
+          <ResizableLayout
+            refContainer={refContainer}
+            direction={'HORIZONTAL'}
+            //direction={'VIRTICAL'}
+            initFraction={[20, 40, 40]}
+          >
+            <div
+              style={{
+                backgroundColor: 'white',
+              }}
+            >
+              center-left
+            </div>
+            <div
+              style={{
+                backgroundColor: 'green',
+              }}
+            >
+              center-center
+            </div>
+            <div
+              style={{
+                backgroundColor: 'violet',
+              }}
+            >
+              center-right
+            </div>
+          </ResizableLayout>
         </div>
         <div
           style={{

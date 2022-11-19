@@ -4,12 +4,11 @@ html,body, body > div {
 body {
   margin: 0;
 }
-.diviver {
+.diviver-h {
   position: absolute;
   height: 100%;
 }
-
-.diviver:before {
+.diviver-h:before {
   position: absolute;
   cursor: col-resize;
   display: block;
@@ -19,4 +18,19 @@ body {
   width: 10px;
   background-color: black;
   height: 100%;
+}
+.diviver-v {
+  position: absolute;
+  width: 100%;
+}
+.diviver-v:before {
+  position: absolute;
+  cursor: row-resize;
+  display: block;
+  z-index: 1000;
+  content: "";
+  transform: translate(0, -50%);
+  width: 100%;
+  background-color: black;
+  height: 10px;
 }
