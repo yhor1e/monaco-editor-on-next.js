@@ -1,10 +1,23 @@
 import type { NextPage } from 'next'
-import { useEffect, useRef, useState, useCallback } from 'react'
+import {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  cloneElement,
+  MutableRefObject,
+  isValidElement,
+} from 'react'
 
-const ResizablePage: NextPage = () => {
+const ResizableLayout = ({
+  refContainer,
+  children,
+}: {
+  refContainer: MutableRefObject<HTMLDivElement>
+  children: React.ReactNode
+}): JSX.Element => {
   const [colFraction, setColFraction] = useState<number[]>([])
   const [isDragging, setIsDragging] = useState<Boolean>(false)
-  const refContainer = useRef<HTMLDivElement | null>(null)
   const refDrag = useRef<number | null>(null)
 
   const setColFractionFromInit = useCallback(() => {
@@ -20,7 +33,7 @@ const ResizablePage: NextPage = () => {
       }, 0)
     })
     setColFraction(modified)
-  }, [])
+  }, [refContainer])
 
   useEffect(() => {
     if (refContainer.current === null) return
@@ -31,7 +44,7 @@ const ResizablePage: NextPage = () => {
     return () => {
       observer.disconnect()
     }
-  }, [setColFractionFromInit])
+  }, [refContainer, setColFractionFromInit])
 
   useEffect(() => {
     const onMoveHandler = (e: MouseEvent) => {
@@ -76,7 +89,53 @@ const ResizablePage: NextPage = () => {
     refDrag.current = null
     setIsDragging(false)
   }
+  const renderDiviver = () => {
+    const diviver = children.map((child, index) => {
+      if (index == 0) return
+      return (
+        <div
+          key={index}
+          onMouseDown={onMouseDown}
+          data-diviver-pos={index}
+          className="diviver"
+          style={{
+            left: `${colFraction[index - 1]}px`,
+          }}
+        ></div>
+      )
+    })
+    return <>{diviver}</>
+  }
 
+  const renderChildren = () => {
+    const modifiedChldren = children.map((child, index) => {
+      const left = index === 0 ? 0 : `${colFraction[index - 1]}px`
+      const width =
+        index === 0
+          ? `${colFraction[0]}px`
+          : `${colFraction[index] - colFraction[index - 1]}px`
+      return cloneElement(child, {
+        key: index,
+        style: {
+          ...child.props.style,
+          ...{ left, width: width },
+        },
+      })
+    })
+    return <>{modifiedChldren}</>
+  }
+
+  return (
+    <>
+      <div className="diviverContainer">{renderDiviver()}</div>
+      {renderChildren()}
+    </>
+  )
+}
+
+const ResizablePage: NextPage = () => {
+  const refContainer = useRef<HTMLDivElement | null>(null)
+  const refContainer2 = useRef<HTMLDivElement | null>(null)
   return (
     <div
       ref={refContainer}
@@ -87,57 +146,36 @@ const ResizablePage: NextPage = () => {
         height: '100%',
       }}
     >
-      <div>
+      <ResizableLayout refContainer={refContainer}>
         <div
-          onMouseDown={onMouseDown}
-          data-diviver-pos="1"
-          className="diviver"
           style={{
-            left: `${colFraction[0]}px`,
+            position: 'absolute',
+            left: 0,
+            height: '100%',
+            backgroundColor: 'pink',
           }}
-        ></div>
+        >
+          left
+        </div>
         <div
-          onMouseDown={onMouseDown}
-          data-diviver-pos="2"
-          className="diviver"
           style={{
-            left: `${colFraction[1]}px`,
+            position: 'absolute',
+            height: '100%',
+            backgroundColor: 'skyblue',
           }}
-        ></div>
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          width: `${colFraction[0]}px`,
-          height: '100%',
-          backgroundColor: 'pink',
-        }}
-      >
-        left
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          left: `${colFraction[0]}px`,
-          width: `${colFraction[1] - colFraction[0]}px`,
-          height: '100%',
-          backgroundColor: 'skyblue',
-        }}
-      >
-        center
-      </div>
-      <div
-        style={{
-          position: 'absolute',
-          left: `${colFraction[1]}px`,
-          width: `${colFraction[2] - colFraction[1]}px`,
-          height: '100%',
-          backgroundColor: 'grey',
-        }}
-      >
-        right
-      </div>
+        >
+          center
+        </div>
+        <div
+          style={{
+            position: 'absolute',
+            height: '100%',
+            backgroundColor: 'grey',
+          }}
+        >
+          right
+        </div>
+      </ResizableLayout>
     </div>
   )
 }
