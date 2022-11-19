@@ -6,22 +6,24 @@ import {
   useCallback,
   cloneElement,
   MutableRefObject,
-  isValidElement,
 } from 'react'
 
 const ResizableLayout = ({
   refContainer,
+  direction,
+  initFraction,
   children,
 }: {
-  refContainer: MutableRefObject<HTMLDivElement>
+  refContainer: MutableRefObject<HTMLDivElement | null>
+  direction: 'HORIZONTAL' | 'VIRTICAL'
+  initFraction: number[]
   children: React.ReactNode
 }): JSX.Element => {
-  const [colFraction, setColFraction] = useState<number[]>([])
+  const [fraction, setFraction] = useState<number[]>([])
   const [isDragging, setIsDragging] = useState<Boolean>(false)
   const refDrag = useRef<number | null>(null)
 
-  const setColFractionFromInit = useCallback(() => {
-    const initFraction = [20, 40, 40]
+  const setFractionFromInit = useCallback(() => {
     if (!refContainer.current) return
     const width = Number(
       window.getComputedStyle(refContainer.current).width.replace('px', '')
@@ -32,26 +34,26 @@ const ResizableLayout = ({
         return acc + value
       }, 0)
     })
-    setColFraction(modified)
-  }, [refContainer])
+    setFraction(modified)
+  }, [])
 
   useEffect(() => {
     if (refContainer.current === null) return
     const observer = new ResizeObserver(() => {
-      setColFractionFromInit()
+      setFractionFromInit()
     })
     observer.observe(refContainer.current)
     return () => {
       observer.disconnect()
     }
-  }, [refContainer, setColFractionFromInit])
+  }, [refContainer, setFractionFromInit])
 
   useEffect(() => {
     const onMoveHandler = (e: MouseEvent) => {
       if (!isDragging) return
       if (e.clientX === 0) return
 
-      setColFraction((prev) => {
+      setFraction((prev) => {
         if (!refDrag.current) return prev
         const modified = [0, ...prev]
         const pos = refDrag.current
@@ -74,8 +76,8 @@ const ResizableLayout = ({
   }, [isDragging])
 
   useEffect(() => {
-    setColFractionFromInit()
-  }, [setColFractionFromInit])
+    setFractionFromInit()
+  }, [setFractionFromInit])
 
   const onMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     console.log('onMouseDown')
@@ -99,7 +101,7 @@ const ResizableLayout = ({
           data-diviver-pos={index}
           className="diviver"
           style={{
-            left: `${colFraction[index - 1]}px`,
+            left: `${fraction[index - 1]}px`,
           }}
         ></div>
       )
@@ -109,16 +111,21 @@ const ResizableLayout = ({
 
   const renderChildren = () => {
     const modifiedChldren = children.map((child, index) => {
-      const left = index === 0 ? 0 : `${colFraction[index - 1]}px`
-      const width =
+      const leftOrTop = index === 0 ? 0 : `${fraction[index - 1]}px`
+      const widthOrHeight =
         index === 0
-          ? `${colFraction[0]}px`
-          : `${colFraction[index] - colFraction[index - 1]}px`
+          ? `${fraction[0]}px`
+          : `${fraction[index] - fraction[index - 1]}px`
       return cloneElement(child, {
         key: index,
         style: {
           ...child.props.style,
-          ...{ left, width: width },
+          ...{
+            position: 'absolute',
+            height: '100%',
+            left: leftOrTop,
+            width: widthOrHeight,
+          },
         },
       })
     })
@@ -146,12 +153,13 @@ const ResizablePage: NextPage = () => {
         height: '100%',
       }}
     >
-      <ResizableLayout refContainer={refContainer}>
+      <ResizableLayout
+        refContainer={refContainer}
+        direction={'HORIZONTAL'}
+        initFraction={[20, 40, 40]}
+      >
         <div
           style={{
-            position: 'absolute',
-            left: 0,
-            height: '100%',
             backgroundColor: 'pink',
           }}
         >
@@ -159,8 +167,6 @@ const ResizablePage: NextPage = () => {
         </div>
         <div
           style={{
-            position: 'absolute',
-            height: '100%',
             backgroundColor: 'skyblue',
           }}
         >
@@ -168,8 +174,6 @@ const ResizablePage: NextPage = () => {
         </div>
         <div
           style={{
-            position: 'absolute',
-            height: '100%',
             backgroundColor: 'grey',
           }}
         >
