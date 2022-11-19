@@ -23,16 +23,32 @@ const ResizablePage: NextPage = () => {
   }, [])
 
   useEffect(() => {
-    const resizeHandler = () => {
+    if (refContainer.current === null) return
+    const observer = new ResizeObserver(() => {
       setColFractionFromInit()
-    }
-    window.addEventListener('resize', resizeHandler)
+    })
+    observer.observe(refContainer.current)
     return () => {
-      return window.removeEventListener('resize', resizeHandler)
+      observer.disconnect()
     }
   }, [setColFractionFromInit])
 
   useEffect(() => {
+    const onMoveHandler = (e: MouseEvent) => {
+      if (!isDragging) return
+      if (e.clientX === 0) return
+
+      setColFraction((prev) => {
+        if (!refDrag.current) return prev
+        const modified = [0, ...prev]
+        const pos = refDrag.current
+        if (modified[pos - 1] < e.clientX && modified[pos + 1] > e.clientX) {
+          modified[pos] = e.clientX
+        }
+        modified.shift()
+        return modified
+      })
+    }
     if (isDragging === false) return
     window.addEventListener('mouseup', onMouseUp)
     window.addEventListener('mousemove', onMoveHandler)
@@ -48,29 +64,14 @@ const ResizablePage: NextPage = () => {
     setColFractionFromInit()
   }, [setColFractionFromInit])
 
-  const onMoveHandler = (e) => {
-    if (!isDragging) return
-    if (e.clientX === 0) return
-
-    setColFraction((prev) => {
-      if (!refDrag.current) return prev
-      const modified = [0, ...prev]
-      const pos = refDrag.current
-      if (modified[pos - 1] < e.clientX && modified[pos + 1] > e.clientX) {
-        modified[pos] = e.clientX
-      }
-      modified.shift()
-      return modified
-    })
-  }
-
-  const onMouseDown = (e) => {
+  const onMouseDown = (e: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
     console.log('onMouseDown')
-    refDrag.current = Number(e.target.getAttribute('data-diviver-pos'))
+    const target = e.target as HTMLDivElement
+    refDrag.current = Number(target.getAttribute('data-diviver-pos'))
     setIsDragging(true)
   }
 
-  const onMouseUp = (e) => {
+  const onMouseUp = (e: MouseEvent) => {
     console.log('onMouseUp')
     refDrag.current = null
     setIsDragging(false)
