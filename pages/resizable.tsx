@@ -19,7 +19,7 @@ const ResizableLayout = ({
   initFraction: number[]
   children: React.ReactNode
 }): JSX.Element => {
-  const [fraction, setFraction] = useState<number[]>([])
+  const [leftOrTopPosition, setLeftOrTopPosition] = useState<number[]>([])
   const [isDragging, setIsDragging] = useState<Boolean>(false)
   const refDrag = useRef<number | null>(null)
 
@@ -47,7 +47,7 @@ const ResizableLayout = ({
           return acc + value
         }, 0)
       })
-      setFraction(modified)
+      setLeftOrTopPosition(modified)
     },
     [direction, refContainer]
   )
@@ -76,7 +76,7 @@ const ResizableLayout = ({
       )
         return
 
-      setFraction((prev) => {
+      setLeftOrTopPosition((prev) => {
         if (!refDrag.current) return prev
         const clientXorY = direction === 'HORIZONTAL' ? e.clientX : e.clientY
         const modified = [0, ...prev]
@@ -121,10 +121,10 @@ const ResizableLayout = ({
       const leftOrTopStyle =
         direction === 'HORIZONTAL'
           ? {
-              left: `${fraction[index - 1]}px`,
+              left: `${leftOrTopPosition[index - 1]}px`,
             }
           : {
-              top: `${fraction[index - 1]}px`,
+              top: `${leftOrTopPosition[index - 1]}px`,
             }
       return (
         <div
@@ -141,11 +141,11 @@ const ResizableLayout = ({
 
   const renderChildren = () => {
     const modifiedChldren = children.map((child, index) => {
-      const leftOrTop = index === 0 ? 0 : `${fraction[index - 1]}px`
+      const leftOrTop = index === 0 ? 0 : `${leftOrTopPosition[index - 1]}px`
       const widthOrHeight =
         index === 0
-          ? `${fraction[0]}px`
-          : `${fraction[index] - fraction[index - 1]}px`
+          ? `${leftOrTopPosition[0]}px`
+          : `${leftOrTopPosition[index] - leftOrTopPosition[index - 1]}px`
       const style =
         direction === 'HORIZONTAL'
           ? {
