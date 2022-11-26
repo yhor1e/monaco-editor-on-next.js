@@ -89,13 +89,16 @@ const ResizableLayout = ({
       })
     }
     if (isDragging === false) return
+    if (refContainer?.current) refContainer.current.style.userSelect = 'none'
     window.addEventListener('mouseup', onMouseUp)
     window.addEventListener('mousemove', onMoveHandler)
-    console.log(isDragging)
+    console.log('isDragging', isDragging)
     return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      if (refContainer?.current) refContainer.current.style.userSelect = ''
       window.removeEventListener('mouseup', onMouseUp)
       window.removeEventListener('mousemove', onMoveHandler)
-      console.log(isDragging)
+      console.log('isDragging', isDragging)
     }
   }, [direction, isDragging, refContainer])
 
