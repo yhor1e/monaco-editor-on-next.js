@@ -22,6 +22,7 @@ const ResizableLayout = ({
   const [leftOrTopPosition, setLeftOrTopPosition] = useState<number[]>([])
   const [isDragging, setIsDragging] = useState<Boolean>(false)
   const refDrag = useRef<number | null>(null)
+  const refLeftOrTopPosition = useRef<number[]>([])
 
   const setFractionFromInit = useCallback(
     (fraction: number[]) => {
@@ -54,15 +55,37 @@ const ResizableLayout = ({
 
   useEffect(() => {
     if (refContainer.current === null) return
-    const observer = new ResizeObserver(() => {
+    const resizeHandler = () => {
       console.log('resize')
-      setFractionFromInit(initFraction)
-    })
+      setLeftOrTopPosition((prev) => {
+        console.log('prev:', prev)
+        if (!refContainer.current) return [...prev]
+        const containerWidthOrHeight =
+          direction !== 'VIRTICAL'
+            ? Number(
+                window
+                  .getComputedStyle(refContainer.current)
+                  .width.replace('px', '')
+              )
+            : Number(
+                window
+                  .getComputedStyle(refContainer.current)
+                  .height.replace('px', '')
+              )
+        const totalWidthOrHeight = prev[prev.length - 1]
+        const newPostion = prev.map((p) => {
+          return (p * containerWidthOrHeight) / totalWidthOrHeight
+        })
+        return newPostion
+      })
+    }
+
+    const observer = new ResizeObserver(resizeHandler)
     observer.observe(refContainer.current)
     return () => {
       observer.disconnect()
     }
-  }, [initFraction, refContainer, setFractionFromInit])
+  }, [direction, refContainer, setFractionFromInit])
 
   useEffect(() => {
     const onMoveHandler = (e: MouseEvent) => {
@@ -143,6 +166,7 @@ const ResizableLayout = ({
   }
 
   const renderChildren = () => {
+    console.log(leftOrTopPosition)
     const modifiedChldren = children.map((child, index) => {
       const leftOrTop = index === 0 ? 0 : `${leftOrTopPosition[index - 1]}px`
       const widthOrHeight =
